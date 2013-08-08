@@ -24,7 +24,7 @@ def setup_upload_route(instance, filename=None):
 class ShelfManager(InheritanceManager):
 
     def get_query_set(self):
-        return super(ShelfManager, self).get_query_set().select_subclasses()
+        return super(ShelfManager, self).get_query_set().select_subclasses().prefetch_related('audio_set', 'video_set')
 
 
 class Shelf(TimeStampedModel):
@@ -42,14 +42,19 @@ class Shelf(TimeStampedModel):
 
 class AudioShelf(Shelf):
 
-    AVAILABLE_FORMATS = ('aac', 'ogg', 'webm')
+    # AVAILABLE_FORMATS = ('aac', 'ogg', 'webm')
     ALLOWED_FORMATS = ('mp3', 'aac', 'ogg', 'webm')
 
 
 class VideoShelf(Shelf):
     
-    AVAILABLE_FORMATS = ('mp4', 'webm')
+    # AVAILABLE_FORMATS = ('mp4', 'webm')
     ALLOWED_FORMATS = ('mp4', 'webm', 'avi')
+
+
+class ImageShelf(Shelf):
+
+    ALLOWED_FORMATS = ('jpg', 'jpeg', 'gif', 'png', 'pdf')
 
 
 class BaseFile(TimeStampedModel):
@@ -57,7 +62,7 @@ class BaseFile(TimeStampedModel):
         BaseFile abstract class that defines all the common characters.
     """
     shelf = models.ForeignKey(Shelf)
-    file_descriptor = models.CharField(max_length=255, blank=True)
+    descriptor = models.CharField(max_length=255, blank=True)
     file = models.FileField(upload_to=setup_upload_route, storage=fs)
     meta = JSONField(blank=True)
 
@@ -82,6 +87,17 @@ class Audio(BaseFile):
         Audio model to store audiofiles that can be added to a project.
     """
     TYPES = Choices('original', 'webm', 'mp3')
+
+
+class Video(BaseFile):
+    """
+    Audio model to store audiofiles that can be added to a project.
+    """
+    TYPES = Choices('original', 'webm', 'mp4')
+
+
+class Image(BaseFile):
+    TYPES = Choices('original', 'thumbnail')
 
 
 # class Image(BaseFile):

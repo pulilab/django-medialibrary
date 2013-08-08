@@ -14,11 +14,20 @@ if not settings.configured:
         },
         INSTALLED_APPS=(
             'django.contrib.contenttypes',
+            'django.contrib.sessions',
             'django.contrib.auth',
             'medialibrary',
         ),
+        MIDDLEWARE_CLASSES = (
+            'django.middleware.common.CommonMiddleware',
+            'django.contrib.sessions.middleware.SessionMiddleware',
+            'django.middleware.csrf.CsrfViewMiddleware',
+            'django.contrib.auth.middleware.AuthenticationMiddleware',
+            'django.contrib.messages.middleware.MessageMiddleware',
+        ),
         SITE_ID=1,
         SECRET_KEY='this-is-just-for-tests-so-not-that-secret',
+        ROOT_URLCONF = 'medialibrary.urls'
     )
 
 

@@ -33,4 +33,12 @@ class ShelfTest(TestCase):
         
         media = Audio(file=File(open(__file__, 'rb'), 'testaudio.xxx'))
         self.assertRaises(ValueError, shelf.audio_set.add, media)
+
+    def test_fetching_files_works(self):
+        shelf = AudioShelf.objects.create(name='testaudio', library=self.user.medialibrary)
+        media = Audio(file=File(open(__file__, 'rb'), 'testaudio.mp3'))
+        shelf.audio_set.add(media)
+
+        shelf = AudioShelf.objects.get(pk=shelf.pk)
+        self.assertEqual(shelf.audio_set.all()[0], media)
         

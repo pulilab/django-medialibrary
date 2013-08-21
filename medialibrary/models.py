@@ -37,7 +37,11 @@ class Shelf(TimeStampedModel):
     name = models.CharField(max_length=255)
     library = models.ForeignKey('MediaLibrary')
 
-    objects = ShelfManager()        
+    objects = ShelfManager() 
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('medialibrary-shelf', (), {'pk': self.pk})
 
 
 class AudioShelf(Shelf):

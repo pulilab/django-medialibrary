@@ -16,13 +16,16 @@ class LibraryViewTest(TestCase):
         login = self.client.login(username='alma', password='alma')
         self.assertTrue(login)
 
-    def xtest_upload_image(self):
+    def test_upload_image(self):
         self._login()
         with open('resources/test.png') as fp:
             resp = self.client.post(reverse('medialibrary',
                                             kwargs={'type':'image'}),
                                     {'file': fp})
         self.assertEqual(resp.status_code, 201)
+        data = json.loads(resp.content)
+        self.assertEqual(data['name'], 'test.png')
+        self.assertEqual(len(data['files']), 1)
 
 
 class LibraryLoadedViewTest(TestCase):

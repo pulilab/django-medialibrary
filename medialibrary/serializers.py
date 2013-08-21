@@ -29,6 +29,7 @@ basefileserializer_registry = {
 class ShelfSerializer(serializers.ModelSerializer):
 
     library = serializers.PrimaryKeyRelatedField(required=True, many=False)
+    url = serializers.Field(source='get_absolute_url')
 
     def __init__(self, *args, **kwargs):
         self.shelf_type = kwargs['context'].get('shelf_type', None)
@@ -36,6 +37,9 @@ class ShelfSerializer(serializers.ModelSerializer):
 
         if not self.shelf_type:
             raise ValueError('Shelf type must be specified in the ShelfSerializer context')
+
+        if kwargs.get('files', None) and len( kwargs['files'].keys() ) > 1:
+            raise ValueError('Only a single file can be uploaded at a time')            
 
         shelf_types = {
             'image': ImageShelf,
@@ -81,11 +85,11 @@ class ShelfSerializer(serializers.ModelSerializer):
     def to_native(self, obj):
         """As get_files usually evaluates to [], we add its value here as well"""
         data = super(ShelfSerializer, self).to_native(obj)
-        if not data['files']:
+        if data.has_key('files') and not data['files']:
             data['files'] = data['%s_set' % self.shelf_type]
         return data
 
     class Meta:
-        fields = ('name', 'state', 'library')
-        read_only_fields = ('name', 'state')
+        fields = ('url', 'name', 'state', 'library')
+        read_only_fields = ('state', )
 

@@ -2,7 +2,12 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from .models import Shelf
 from .serializers import ShelfSerializer
-#from vidzor.videoupload.serializers import VideoSerializer
+
+
+class MediaLibraryItemView(generics.RetrieveAPIView):
+    model = Shelf
+    # TODO: should be allowed only for the owner
+    permission_classes = (permissions.IsAuthenticated,) 
 
 
 class MediaLibraryAPIView(generics.ListCreateAPIView):
@@ -13,69 +18,37 @@ class MediaLibraryAPIView(generics.ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
         self.shelf_type = kwargs.get('type')
-        self.user = request.user
         return super(MediaLibraryAPIView, self).get(request, *args, **kwargs)
 
     def get_serializer_context(self):
         ctx = super(MediaLibraryAPIView, self).get_serializer_context()
         ctx['shelf_type'] = self.shelf_type
+        ctx['method'] = self.request.method
         return ctx
 
+    def post(self, request, *args, **kwargs):
+        self.shelf_type = kwargs.get('type')
+        request.DATA['library'] = self.request.user.medialibrary.pk
+        request.DATA['name'] = request.FILES.values()[0].name
 
-# class GenericLibraryAPI(generics.ListCreateAPIView):
-#     model = MediaLibrary
-#     model_type = None
-#     user = None
-#     permission_classes = (permissions.IsAuthenticated,)
+        # Forbid using this method to upload videofiles, use old /v2/api/upload
+        # till it's not refactored.
+        # TODO: refactor and remove /v2/api/upload
+        if self.shelf_type == 'video':
+            return Response({'error': 'not implemented yet, use old videouploader'},
+                            status=status.HTTP_403_FORBIDDEN)
 
-#     def get(self, request, *args, **kwargs):
-#         self.model_type = kwargs.get('type')
-#         self.user = request.user
-#         return super(GenericLibraryAPI, self).get(request, *args, **kwargs)
+        resp = super(MediaLibraryAPIView, self).post(request, *args, **kwargs)
 
-#     def post(self, request, *args, **kwargs):
-#         self.model_type = kwargs.get('type')
-#         self.user = request.user
+        new_id = resp.data['url'].split('/')[-2]
+        new_shelve = self.get_queryset().get(pk=new_id)
+        context = self.get_serializer_context()
+        context['method'] = 'GET'
+        resp_serializer = self.serializer_class(new_shelve, context=context)
+        resp.data = resp_serializer.data
+        return resp
 
-#         # Forbid using this method to upload videofiles, use old /v2/api/upload
-#         # till it's not refactored.
-#         # TODO: refactor and remove /v2/api/upload
-#         if self.model_type == 'video':
-#             return Response({'error': 'not implemented yet, use old videouploader'},
-#                             status=status.HTTP_403_FORBIDDEN)
-#         return super(GenericLibraryAPI, self).post(request, *args, **kwargs)
-
-#     def pre_save(self, obj):
-#         obj.user = self.user
-#         super(GenericLibraryAPI, self).pre_save(obj)
-
-#     def post_save(self, obj, created=False):
-#         if created:
-#             # Add uploaded object to user's library
-#             self.get_library().add(obj)
-#         super(GenericLibraryAPI, self).post_save(obj, created)
-
-#     def get_serializer_class(self):
-#         if self.model_type == 'video':
-#             return VideoSerializer
-#         elif self.model_type == 'audio':
-#             return AudioSerializer
-#         elif self.model_type == 'image':
-#             return ImageSerializer
-
-#     def get_library(self):
-#         """
-#         Return the proper type of library of the user
-#         """
-#         library = self.model.objects.get(user=self.user)
-
-#         libraries = {
-#             'video': library.video.files,
-#             'audio': library.audio.files,
-#             'image': library.image.files
-#         }
-#         return libraries[self.model_type]
-
-#     def get_queryset(self):
-#         return self.get_library().all()
+    def pre_save(self, obj):
+        obj.library = self.request.user.medialibrary
+        super(MediaLibraryAPIView, self).pre_save(obj)
 

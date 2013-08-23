@@ -34,12 +34,14 @@ class MediaLibraryAPIView(generics.ListCreateAPIView):
         # Forbid using this method to upload videofiles, use old /v2/api/upload
         # till it's not refactored.
         # TODO: refactor and remove /v2/api/upload
-        if self.shelf_type == 'video':
-            return Response({'error': 'not implemented yet, use old videouploader'},
-                            status=status.HTTP_403_FORBIDDEN)
+        # if self.shelf_type == 'video':
+        #     return Response({'error': 'not implemented yet, use old videouploader'},
+        #                     status=status.HTTP_403_FORBIDDEN)
 
         resp = super(MediaLibraryAPIView, self).post(request, *args, **kwargs)
-
+        if not resp.data.has_key('url'):
+            return resp
+            
         new_id = resp.data['url'].split('/')[-2]
         new_shelve = self.get_queryset().get(pk=new_id)
         context = self.get_serializer_context()

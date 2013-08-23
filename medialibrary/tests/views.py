@@ -7,14 +7,19 @@ from django.core.urlresolvers import reverse
 from ..models import AudioShelf, Audio
 from ..serializers import ShelfSerializer
 
-class LibraryViewTest(TestCase):
+class MyViewTestMixin(object):
 
-    def setUp(self):
-        self.user = User.objects.create_user('alma', 'alma@example.com', 'alma')
+    def _create_user(self, username='alma'):
+        self.user = User.objects.create_user(username, '%s@example.com' % username, username)
 
     def _login(self):
         login = self.client.login(username='alma', password='alma')
         self.assertTrue(login)
+
+class LibraryViewTest(MyViewTestMixin, TestCase):
+
+    def setUp(self):
+        self._create_user()
 
     def test_upload_image(self):
         self._login()
@@ -28,21 +33,17 @@ class LibraryViewTest(TestCase):
         self.assertEqual(len(data['files']), 1)
 
 
-class LibraryLoadedViewTest(TestCase):
+class LibraryLoadedViewTest(MyViewTestMixin, TestCase):
 
     # fixtures = ['test_library.json']
 
     def setUp(self):
-        self.user = User.objects.create_user('alma', 'alma@example.com', 'alma')
+        self._create_user()
         self.shelf = AudioShelf.objects.create(name='testaudio', library=self.user.medialibrary)
         media1 = Audio(file=File(open(__file__, 'rb'), 'testaudio.mp3'))
         media2 = Audio(file=File(open(__file__, 'rb'), 'testaudio.mp3'))
         self.shelf.audio_set.add(media1)
         self.shelf.audio_set.add(media2)
-
-    def _login(self):
-        login = self.client.login(username='alma', password='alma')
-        self.assertTrue(login)
 
     def test_get_images(self):
         self._login()

@@ -13,13 +13,7 @@ from model_utils.managers import InheritanceManager
 
 from django.core.files.storage import FileSystemStorage
 fs = FileSystemStorage()
-
-def setup_upload_route(instance, filename=None):
-    today = datetime.datetime.today()
-    return '%s/%s-%02d-%02d/%s' % (instance.shelf.__class__.__name__.lower(),
-                                       today.year, today.month, today.day,
-                                       filename)
-
+from .utils import setup_upload_route
 
 class ShelfManager(InheritanceManager):
 
@@ -39,6 +33,9 @@ class Shelf(TimeStampedModel):
 
     objects = ShelfManager() 
 
+    class Meta:
+        verbose_name_plural = 'Shelves'
+
     @models.permalink
     def get_absolute_url(self):
         return ('medialibrary-shelf', (), {'pk': self.pk})
@@ -54,6 +51,28 @@ class VideoShelf(Shelf):
     
     # AVAILABLE_FORMATS = ('mp4', 'webm')
     ALLOWED_FORMATS = ('mp4', 'webm', 'avi')
+    # thumbnail = models.ForeignKey('ImageShelf')
+
+    def original():
+        doc = "The original file"
+        def fget(self):
+            return self.video_set.filter(descriptor='original')[0]
+        return locals()
+    original = property(**original())
+
+    def size():
+        doc = "The size of the original file"
+        def fget(self):
+            return self.original.file.size
+        return locals()
+    size = property(**size())
+
+    def url():
+        doc = "The url of the original file"
+        def fget(self):
+            return self.original.file.url
+        return locals()
+    url = property(**url())
 
 
 class ImageShelf(Shelf):
@@ -66,13 +85,9 @@ class BaseFile(TimeStampedModel):
         BaseFile abstract class that defines all the common characters.
     """
     shelf = models.ForeignKey(Shelf)
-    descriptor = models.CharField(max_length=255, blank=True)
+    descriptor = models.CharField(max_length=255, blank=True, default='original')
     file = models.FileField(upload_to=setup_upload_route, storage=fs)
-    meta = JSONField(blank=True)
-
-    #user = models.ForeignKey(User)
-    #project = models.ForeignKey(Project, null=True, blank=True,
-    #                            related_name='%(app_label)s_%(class)s_set')
+    meta = JSONField(blank=True, help_text="An arbitrary JSON")
 
     class Meta:
         abstract = True
@@ -84,6 +99,15 @@ class BaseFile(TimeStampedModel):
         if not self.has_valid_format():
             raise ValueError
         return super(BaseFile, self).save(force_insert, force_update, update_fields)
+
+    def save_alternative(self, url, descriptor, meta={}):
+        """Creates a new media record in the DB from the current one without saving any new files in the storage"""
+        self.pk = None
+        self.file.name = url
+        self.descriptor = descriptor
+        self.meta = meta if meta else self.meta
+        self.save()
+        return self
 
 
 class Audio(BaseFile):
@@ -104,59 +128,6 @@ class Image(BaseFile):
     TYPES = Choices('original', 'thumbnail')
 
 
-# class Image(BaseFile):
-#     """
-#         Image model to store images with thumbnails.
-#     """
-
-#     imagefile = EnhancedImageField(
-#         upload_to=setup_upload_route,
-#         storage=fs,
-#         #process_source = dict(size='512x384', sharpen=True, upscale=True, format='JPEG'),
-#         thumbnails={
-#             'thumb': dict(size='128x128')
-#         }
-#     )
-
-# try:
-#     from south.modelsinspector import add_introspection_rules
-#     add_introspection_rules([], ["^thumbnail_works.fields.EnhancedImageField"])
-# except ImportError:
-#     pass
-
-# class Library(TimeStampedModel):
-#     """
-#         BaseLibrary abstract class defines common timestamps and title for
-#         user's libraries.
-#     """
-
-#     title = models.CharField(blank=True, max_length=200)
-
-
-# class VideoLibrary(Library):
-
-#     AVAILABLE_FORMATS = ('mp4', 'webm')
-#     ALLOWED_FORMATS = ('mp4', 'webm', 'avi')
-
-#     files = models.ManyToManyField('videoupload.Video')
-
-
-# class AudioLibrary(Library):
-
-#     AVAILABLE_FORMATS = ('aac', 'ogg')
-#     ALLOWED_FORMATS = ('mp3', 'aac', 'ogg')
-
-#     files = models.ManyToManyField(Audio)
-
-
-# class ImageLibrary(Library):
-
-#     AVAILABLE_FORMATS = ('jpg',)
-#     ALLOWED_FORMATS = ('jpg', 'png', 'gif')
-
-#     files = models.ManyToManyField(Image)
-
-
 class MediaLibrary(TimeStampedModel):
     """
         Media Library for a user, it aggregates the three other sublibraries,
@@ -164,10 +135,6 @@ class MediaLibrary(TimeStampedModel):
     """
 
     user = models.OneToOneField(User)
-
-    # video = models.OneToOneField(VideoLibrary, null=True, blank=True)
-    # audio = models.OneToOneField(AudioLibrary, null=True, blank=True)
-    # image = models.OneToOneField(ImageLibrary, null=True, blank=True)
 
     def __unicode__(self):
         return 'Library for user %s' % self.user.username
@@ -177,14 +144,3 @@ def create_media_library(sender, created, instance, **kwargs):
     if created:
         instance.medialibrary = MediaLibrary.objects.create(user=instance)
         instance.save()
-
-# @receiver(post_save, sender=MediaLibrary, dispatch_uid="create_all_libraries")
-# def create_all_libraries(sender, created, instance, **kwargs):
-#     if created:
-#         instance.video = VideoLibrary.objects.create()
-#         instance.audio = AudioLibrary.objects.create()
-#         # instance.image = ImageLibrary.objects.create()
-#         instance.save()
-
-
-# Create your models here.

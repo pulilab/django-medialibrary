@@ -41,4 +41,18 @@ class ShelfTest(TestCase):
 
         shelf = AudioShelf.objects.get(pk=shelf.pk)
         self.assertEqual(shelf.audio_set.all()[0], media)
+
+
+class BaseFileTest(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create(username='testuser')
+
+    def test_save_alternative(self):
+        shelf = AudioShelf.objects.create(name='testaudio', library=self.user.medialibrary)
+        media = Audio(file=File(open(__file__, 'rb'), 'testaudio.mp3'))
+        shelf.audio_set.add(media)
+
+        newmedia = media.save_alternative('me/testaudio2.mp3', 'mp3')
+        self.assertEqual(shelf.audio_set.count(), 2)
         

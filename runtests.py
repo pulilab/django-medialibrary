@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys
+import sys, os
 
 from django.conf import settings
 
@@ -27,7 +27,8 @@ if not settings.configured:
         ),
         SITE_ID=1,
         SECRET_KEY='this-is-just-for-tests-so-not-that-secret',
-        ROOT_URLCONF = 'medialibrary.urls'
+        ROOT_URLCONF = 'medialibrary.urls',
+        TEST_RUNNER = 'test_utils.runner.RadicalTestSuiteRunner',
     )
 
 
@@ -35,9 +36,14 @@ from django.test.utils import get_runner
 
 
 def runtests():
+    os.environ['FORCE_DB'] = '1'
+    if len(sys.argv) > 1:
+        totest = map(lambda m: 'medialibrary.tests.%s' % m, sys.argv[1:])
+    else:
+        totest = ['medialibrary', ]
     TestRunner = get_runner(settings)
     test_runner = TestRunner(verbosity=1, interactive=True, failfast=False)
-    failures = test_runner.run_tests(['medialibrary', ])
+    failures = test_runner.run_tests(totest)
     sys.exit(failures)
 
 

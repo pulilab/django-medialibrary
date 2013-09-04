@@ -57,3 +57,10 @@ class LibraryLoadedViewTest(MyViewTestMixin, TestCase):
             keys_to_match, 
             serializer_keys
         )
+
+    def test_returned_items(self):
+        """VIDZOR-311"""
+        self._login()
+        resp = self.client.get(reverse('medialibrary', kwargs={'type':'video'}))
+        data = json.loads(resp.content)
+        self.assertEqual(data, [])

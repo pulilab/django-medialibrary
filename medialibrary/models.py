@@ -18,7 +18,7 @@ from .utils import setup_upload_route
 class ShelfManager(InheritanceManager):
 
     def get_query_set(self):
-        return super(ShelfManager, self).get_query_set().select_subclasses().prefetch_related('audio_set', 'video_set')
+        return super(ShelfManager, self).get_query_set().select_subclasses().prefetch_related('audio_set', 'video_set', 'image_set')
 
 
 class Shelf(TimeStampedModel):

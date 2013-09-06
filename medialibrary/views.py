@@ -20,6 +20,10 @@ class MediaLibraryAPIView(generics.ListCreateAPIView):
         self.shelf_type = kwargs.get('type')
         return super(MediaLibraryAPIView, self).get(request, *args, **kwargs)
 
+    def get_queryset(self):
+        qs = super(MediaLibraryAPIView, self).get_queryset()
+        return qs.exclude(**{'%sshelf__isnull' % self.shelf_type:True})
+
     def get_serializer_context(self):
         ctx = super(MediaLibraryAPIView, self).get_serializer_context()
         ctx['shelf_type'] = self.shelf_type

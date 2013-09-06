@@ -11,8 +11,6 @@ from model_utils.models import TimeStampedModel
 from model_utils.managers import InheritanceManager
 #from thumbnail_works.fields import EnhancedImageField
 
-from django.core.files.storage import FileSystemStorage
-fs = FileSystemStorage()
 from .utils import setup_upload_route
 
 class ShelfManager(InheritanceManager):
@@ -86,7 +84,7 @@ class BaseFile(TimeStampedModel):
     """
     shelf = models.ForeignKey(Shelf)
     descriptor = models.CharField(max_length=255, blank=True, default='original')
-    file = models.FileField(upload_to=setup_upload_route, storage=fs)
+    file = models.FileField(upload_to=setup_upload_route)
     meta = JSONField(blank=True, help_text="An arbitrary JSON")
 
     class Meta:

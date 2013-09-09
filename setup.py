@@ -15,12 +15,12 @@ def read_file(filename):
 setup(
     name='django-medialibrary',
     version=__import__('medialibrary').__version__,
-    author='<Include Your Name Here>',
-    author_email='<Include Your Email Here>',
+    author='Viktor Nagy',
+    author_email='v@pulilab.com',
     packages=find_packages(),
     include_package_data=True,
-    url='<Include Link to Project>',
-    license='<Include License Name>',
+    url='https://github.com/pulilab/django-medialibrary',
+    license=read_file('LICENSE'),
     description=u' '.join(__import__('medialibrary').__doc__.splitlines()).strip(),
     classifiers=[
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',

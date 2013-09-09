@@ -1,3 +1,3 @@
-"<Include a description of your project>"
+"A pluggable django app for media management."
 
-__version__ = '0.0.0'
+__version__ = '1.0.0'

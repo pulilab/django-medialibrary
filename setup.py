@@ -20,7 +20,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     url='https://github.com/pulilab/django-medialibrary',
-    license=read_file('LICENSE'),
+    license='BSD 3-Clause License, see the LICENSE file for details',
     description=u' '.join(__import__('medialibrary').__doc__.splitlines()).strip(),
     classifiers=[
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
@@ -32,7 +32,7 @@ setup(
         'Development Status :: 4 - Beta',
         'Operating System :: OS Independent',
     ],
-    long_description='BSD 3-Clause License, see the LICENSE file for details',
+    long_description=read_file('README.rst'),
     test_suite="runtests.runtests",
     zip_safe=False,
     install_requires=[

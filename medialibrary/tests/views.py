@@ -16,6 +16,34 @@ class MyViewTestMixin(object):
         login = self.client.login(username='alma', password='alma')
         self.assertTrue(login)
 
+
+class AddShelfRelationAPIView(MyViewTestMixin, TestCase):
+
+    def setUp(self):
+        self._create_user()
+        self.shelf = AudioShelf.objects.create(name='testaudio', library=self.user.medialibrary)
+
+    def test_requires_login(self):
+        resp = self.client.post(reverse('medialibrary-shelf-add-relation', kwargs={'pk':self.shelf.pk}), 
+            data={})
+        self.assertEqual(resp.status_code, 403)
+
+    def test_add_relationship(self):
+        self._login()
+        resp = self.client.post(reverse('medialibrary-shelf-add-relation', kwargs={'pk':self.shelf.pk}), 
+            data={'model':'auth.user', 'object_id':self.user.pk})
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(self.shelf.relationships.count(), 1)
+
+    def test_relationships_are_restricted(self):
+        self._login()
+        resp = self.client.post(reverse('medialibrary-shelf-add-relation', kwargs={'pk':self.shelf.pk}), 
+            data={'model':'medialibrary.medialibrary', 'object_id':self.user.medialibrary.pk})
+        self.assertEqual(resp.status_code, 400, resp.content)
+        data = json.loads(resp.content)
+        self.assertTrue(data.has_key('model'))
+
+
 class LibraryViewTest(MyViewTestMixin, TestCase):
 
     def setUp(self):

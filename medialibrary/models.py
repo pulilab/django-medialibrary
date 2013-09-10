@@ -1,5 +1,7 @@
 import datetime
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -11,12 +13,18 @@ from model_utils.models import TimeStampedModel
 from model_utils.managers import InheritanceManager
 #from thumbnail_works.fields import EnhancedImageField
 
-from .utils import setup_upload_route
+from .utils import setup_upload_route, content_type_restriction
 
 class ShelfManager(InheritanceManager):
 
     def get_query_set(self):
         return super(ShelfManager, self).get_query_set().select_subclasses().prefetch_related('audio_set', 'video_set', 'image_set')
+
+
+class ShelfManagerWithRelations(ShelfManager):
+
+    def get_query_set(self):
+        return super(ShelfManagerWithRelations, self).get_query_set().prefetch_related('shelfrelation_set')
 
 
 class Shelf(TimeStampedModel):
@@ -30,6 +38,7 @@ class Shelf(TimeStampedModel):
     library = models.ForeignKey('MediaLibrary')
 
     objects = ShelfManager() 
+    with_relations = ShelfManagerWithRelations()
 
     class Meta:
         verbose_name_plural = 'Shelves'
@@ -37,6 +46,13 @@ class Shelf(TimeStampedModel):
     @models.permalink
     def get_absolute_url(self):
         return ('medialibrary-shelf', (), {'pk': self.pk})
+
+
+class ShelfRelation(TimeStampedModel):
+    shelf = models.ForeignKey(Shelf, related_name='relationships')
+    content_type = models.ForeignKey(ContentType, limit_choices_to=content_type_restriction)
+    object_id = models.PositiveIntegerField()
+    relates_to = generic.GenericForeignKey('content_type', 'object_id')
 
 
 class AudioShelf(Shelf):

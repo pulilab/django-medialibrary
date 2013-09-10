@@ -15,13 +15,21 @@ Frontend API
 
 There is no html frontend on purpose as we are using this app through APIs. The provided APIs out of the box are
 
-``/audio/``, ``/video/``, ``/image/`` - to upload and list media elements of a given type
-``/<pk>/`` - to get detailed info about a single media element
+* ``/audio/``, ``/video/``, ``/image/`` - to upload and list media elements of a given type
+* ``/<pk>/`` - to get detailed info about a single media element
+* ``/<pk>/add/`` - adds a relationship to the media element, expects a json of the form::
+
+	{
+		'model': 'app_name.model_name',
+		'object_id': 1
+	}
+
+where ``app_name.model_name`` is the `natural key <https://docs.djangoproject.com/en/1.5/topics/serialization/#topics-serialization-natural-keys>`_ of the model you are attaching.
 
 Customizations
 ---------------
 
-Besides the general django settings for file storage, there is a single custom setting, the upload_to method used in the FileFields.::
+Besides the general django settings for file storage, there is a custom setting, the upload_to method used in the FileFields.::
 
 	import datetime
 	def setup_s3_route(instance, filename=None):
@@ -30,6 +38,12 @@ Besides the general django settings for file storage, there is a single custom s
 	                                          filename)
 	from medialibrary import utils 
 	utils.setup_upload_route = setup_s3_route
+
+You can set a custom argument for the ``limit_choices_to`` attribute on the ShelfRelation model. This way you can define which apps are allowed to have relationships to you media elements. (e.g. if you remove the attached records when you remove the media, you probably don't want to attach django permission records to media). The default is **no restricions**!::
+
+	from medialibrary import utils
+	from django.db import models
+	utils.content_type_restriction = models.Q(app_label='auth', model='user')
 
 Installation
 -------------

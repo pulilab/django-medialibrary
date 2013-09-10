@@ -3,7 +3,6 @@ import sys, os
 
 from django.conf import settings
 
-
 if not settings.configured:
     settings.configure(
         DATABASES={
@@ -28,9 +27,12 @@ if not settings.configured:
         SITE_ID=1,
         SECRET_KEY='this-is-just-for-tests-so-not-that-secret',
         ROOT_URLCONF = 'medialibrary.urls',
-        TEST_RUNNER = 'test_utils.runner.RadicalTestSuiteRunner',
+        TEST_RUNNER = 'test_utils.runner.RadicalTestSuiteRunner'
     )
 
+from medialibrary import utils
+from django.db import models
+utils.content_type_restriction = models.Q(app_label='auth', model='user')
 
 from django.test.utils import get_runner
 

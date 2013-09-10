@@ -40,5 +40,5 @@ setup(
         'django-model-utils',
         'jsonfield'
     ],
-    download_url='https://github.com/pulilab/django-medialibrary/archive/1.0.0.zip'
+    download_url='https://github.com/pulilab/django-medialibrary/archive/1.1.0.zip'
 )

@@ -32,7 +32,7 @@ setup(
         'Development Status :: 4 - Beta',
         'Operating System :: OS Independent',
     ],
-    long_description=read_file('README.rst'),
+    long_description='BSD 3-Clause License, see the LICENSE file for details',
     test_suite="runtests.runtests",
     zip_safe=False,
     install_requires=[

@@ -73,7 +73,7 @@ class LibraryLoadedViewTest(MyViewTestMixin, TestCase):
         self.shelf.audio_set.add(media1)
         self.shelf.audio_set.add(media2)
 
-    def test_get_images(self):
+    def test_get_audio(self):
         self._login()
         resp = self.client.get(reverse('medialibrary', kwargs={'type':'audio'}))
         self.assertEqual(resp.status_code, 200)
@@ -92,3 +92,33 @@ class LibraryLoadedViewTest(MyViewTestMixin, TestCase):
         resp = self.client.get(reverse('medialibrary', kwargs={'type':'video'}))
         data = json.loads(resp.content)
         self.assertEqual(data, [])
+
+
+class LibraryPermissionTest(MyViewTestMixin, TestCase):
+
+    def setUp(self):
+        self._create_user()
+        self.username2 = 'alma2'
+        self.user2 = User.objects.create_user(self.username2, '%s@example.com' % self.username2, self.username2)
+
+        # upload a testaudio file for user2
+        self.shelf = AudioShelf.objects.create(name='testaudio', library=self.user2.medialibrary)
+        media = Audio(file=File(open(__file__, 'rb'), 'testaudio.mp3'))
+        self.shelf.audio_set.add(media)
+
+    def test_audioshelf_permission(self):
+        # login with alma2
+        login = self.client.login(username=self.username2, password=self.username2)
+        self.assertTrue(login)
+
+        # get audio with alma2
+        resp = self.client.get(reverse('medialibrary', kwargs={'type':'audio'}))
+        self.assertContains(resp, 'testaudio')
+
+        # logout and login with other user
+        self.client.logout()
+        self._login()
+
+        # other user should not see the testaudio file
+        resp = self.client.get(reverse('medialibrary', kwargs={'type':'audio'}))
+        self.assertNotContains(resp, 'testaudio')

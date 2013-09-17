@@ -1,4 +1,3 @@
-import datetime
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -19,6 +18,15 @@ class ShelfManager(InheritanceManager):
 
     def get_query_set(self):
         return super(ShelfManager, self).get_query_set().select_subclasses().prefetch_related('audio_set', 'video_set', 'image_set')
+
+    def by_user(self, user):
+        return self.get_query_set().filter(library__user=user)
+
+
+class ShelfManagerWithRelations(ShelfManager):
+
+    def get_query_set(self):
+        return super(ShelfManagerWithRelations, self).get_query_set().prefetch_related('shelfrelation_set')
 
 
 class ShelfManagerWithRelations(ShelfManager):

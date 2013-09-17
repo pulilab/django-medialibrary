@@ -1,7 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 
-from rest_framework import generics, permissions, status
-from rest_framework.response import Response
+from rest_framework import generics, permissions
 from .models import Shelf, ShelfRelation
 from .serializers import ShelfSerializer
 
@@ -37,7 +36,7 @@ class MediaLibraryAPIView(generics.ListCreateAPIView):
         return super(MediaLibraryAPIView, self).get(request, *args, **kwargs)
 
     def get_queryset(self):
-        qs = super(MediaLibraryAPIView, self).get_queryset()
+        qs = self.model.objects.by_user(self.request.user)
         return qs.exclude(**{'%sshelf__isnull' % self.shelf_type:True})
 
     def get_serializer_context(self):
@@ -50,13 +49,6 @@ class MediaLibraryAPIView(generics.ListCreateAPIView):
         self.shelf_type = kwargs.get('type')
         request.DATA['library'] = self.request.user.medialibrary.pk
         request.DATA['name'] = request.FILES.values()[0].name
-
-        # Forbid using this method to upload videofiles, use old /v2/api/upload
-        # till it's not refactored.
-        # TODO: refactor and remove /v2/api/upload
-        # if self.shelf_type == 'video':
-        #     return Response({'error': 'not implemented yet, use old videouploader'},
-        #                     status=status.HTTP_403_FORBIDDEN)
 
         resp = super(MediaLibraryAPIView, self).post(request, *args, **kwargs)
         if not resp.data.has_key('url'):

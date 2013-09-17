@@ -6,13 +6,17 @@ def basefileserializer_factory(mymodel):
     class ThisClass(serializers.ModelSerializer):
         # imagefile = serializers.ImageField()
         # thumbnail = serializers.SerializerMethodField('get_thumbnail_url')
+        url = serializers.SerializerMethodField('get_file_url')
 
         class Meta:
             model = mymodel
-            fields = ('file', 'descriptor', 'meta')
+            fields = ('file', 'descriptor', 'meta', 'url')
 
         def get_thumbnail_url(self, obj):
             return obj.imagefile.thumb.url
+
+        def get_file_url(self, obj):
+            return obj.file.url
 
     return ThisClass
 

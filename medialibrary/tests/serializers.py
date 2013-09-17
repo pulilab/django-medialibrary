@@ -4,6 +4,22 @@ from django.core.files import File
 from ..serializers import ShelfSerializer, AudioSerializer
 from ..models import ImageShelf, Image, AudioShelf, Audio
 
+
+class BaseFileSerializerTest(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user('alma', 'alma@example.com', 'alma')
+    
+    def test_audio_serializer_return_values(self):
+        shelf = AudioShelf.objects.create(name='testaudio', library=self.user.medialibrary)
+        audio = Audio(file=File(open(__file__, 'rb'), 'testaudio.mp3'))
+        # shelf.audio_set.add(media)
+
+        serializer = AudioSerializer(audio)
+        self.assertEqual(serializer.data.keys(), ['file', 'descriptor', 'meta', 'url'])
+        self.assertEqual(serializer.data['url'], 'testaudio.mp3')
+
+
 class ShelfSerializerTest(TestCase):
 
     def setUp(self):

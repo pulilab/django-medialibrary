@@ -1,9 +1,26 @@
-from rest_framework import generics, permissions
-from .models import Shelf
+from django.contrib.contenttypes.models import ContentType
+
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
+from .models import Shelf, ShelfRelation
 from .serializers import ShelfSerializer
 
 
-class MediaLibraryItemView(generics.RetrieveAPIView):
+class AddShelfRelationAPIView(generics.CreateAPIView):
+    model = ShelfRelation
+    # TODO: should be allowed only for the owner
+    permission_classes = (permissions.IsAuthenticated,) 
+    
+    def post(self, request, *args, **kwargs):
+        request.DATA['shelf'] = kwargs['pk']
+        request.DATA['content_type'] = ContentType.objects.get_by_natural_key(request.DATA['model'].split('.')[0], request.DATA['model'].split('.')[1]).pk
+        resp = super(AddShelfRelationAPIView, self).post(request, *args, **kwargs)
+        if resp.status_code == 400 and resp.data.has_key('content_type'):
+            resp.data = {'model': "Invalid model given"}
+        return resp
+        
+
+class MediaLibraryItemView(generics.RetrieveUpdateAPIView):
     model = Shelf
     # TODO: should be allowed only for the owner
     permission_classes = (permissions.IsAuthenticated,) 
@@ -20,7 +37,7 @@ class MediaLibraryAPIView(generics.ListCreateAPIView):
         return super(MediaLibraryAPIView, self).get(request, *args, **kwargs)
 
     def get_queryset(self):
-        qs = self.model.objects.by_user(self.request.user)
+        qs = super(MediaLibraryAPIView, self).get_queryset()
         return qs.exclude(**{'%sshelf__isnull' % self.shelf_type:True})
 
     def get_serializer_context(self):
@@ -33,6 +50,13 @@ class MediaLibraryAPIView(generics.ListCreateAPIView):
         self.shelf_type = kwargs.get('type')
         request.DATA['library'] = self.request.user.medialibrary.pk
         request.DATA['name'] = request.FILES.values()[0].name
+
+        # Forbid using this method to upload videofiles, use old /v2/api/upload
+        # till it's not refactored.
+        # TODO: refactor and remove /v2/api/upload
+        # if self.shelf_type == 'video':
+        #     return Response({'error': 'not implemented yet, use old videouploader'},
+        #                     status=status.HTTP_403_FORBIDDEN)
 
         resp = super(MediaLibraryAPIView, self).post(request, *args, **kwargs)
         if not resp.data.has_key('url'):

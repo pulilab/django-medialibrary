@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.files import File
 from django.test import TestCase
+from django.contrib.contenttypes.models import ContentType
 
 from ..models import MediaLibrary, AudioShelf, Shelf, Audio
 
@@ -41,6 +42,31 @@ class ShelfTest(TestCase):
 
         shelf = AudioShelf.objects.get(pk=shelf.pk)
         self.assertEqual(shelf.audio_set.all()[0], media)
+
+
+
+class ShelfWithRelationshipTest(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create(username='testuser')
+
+    def test_relationship_works(self):
+        shelf = AudioShelf.objects.create(name='testaudio', library=self.user.medialibrary)
+        shelf.relationships.create(relates_to=self.user)
+        ct_user = ContentType.objects.get_for_model(self.user)
+        shelfrelations = AudioShelf.objects.get(relationships__content_type__pk=ct_user.pk, relationships__object_id=self.user.pk)
+        self.assertEqual(shelfrelations, shelf)
+
+    def test_relationshipmanager(self):
+        shelf = AudioShelf.objects.create(name='testaudio', library=self.user.medialibrary)
+        with self.settings(DEBUG=True):
+            shelf.relationships.create(relates_to=self.user)
+            from django.db import connection
+            q1 = len(connection.queries)
+            AudioShelf.with_relations.filter(pk=shelf.pk)
+            q2 = len(connection.queries)
+            self.assertEqual(q2-q1, 0)
+        
 
 
 class BaseFileTest(TestCase):

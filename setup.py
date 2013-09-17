@@ -20,7 +20,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     url='https://github.com/pulilab/django-medialibrary',
-    license=read_file('LICENSE'),
+    license='BSD 3-Clause License, see the LICENSE file for details',
     description=u' '.join(__import__('medialibrary').__doc__.splitlines()).strip(),
     classifiers=[
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
@@ -38,6 +38,7 @@ setup(
     install_requires=[
         'Django>=1.4,<1.6',
         'django-model-utils',
-        'jsonfield'
-    ]
+        'django-jsonfield>=0.9.10',
+    ],
+    download_url='https://github.com/pulilab/django-medialibrary/archive/1.1.0.zip'
 )

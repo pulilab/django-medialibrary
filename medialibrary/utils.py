@@ -5,3 +5,5 @@ def setup_upload_route(instance, filename=None):
     return '%s/%s-%02d-%02d/%s' % (instance.shelf.__class__.__name__.lower(),
                                        today.year, today.month, today.day,
                                        filename)
+
+content_type_restriction = None

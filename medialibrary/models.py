@@ -1,4 +1,3 @@
-import datetime
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
@@ -17,6 +16,9 @@ class ShelfManager(InheritanceManager):
 
     def get_query_set(self):
         return super(ShelfManager, self).get_query_set().select_subclasses().prefetch_related('audio_set', 'video_set', 'image_set')
+
+    def by_user(self, user):
+        return self.get_query_set().filter(library__user=user)
 
 
 class Shelf(TimeStampedModel):

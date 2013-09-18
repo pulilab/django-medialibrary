@@ -29,12 +29,6 @@ class ShelfManagerWithRelations(ShelfManager):
         return super(ShelfManagerWithRelations, self).get_query_set().prefetch_related('shelfrelation_set')
 
 
-class ShelfManagerWithRelations(ShelfManager):
-
-    def get_query_set(self):
-        return super(ShelfManagerWithRelations, self).get_query_set().prefetch_related('shelfrelation_set')
-
-
 class Shelf(TimeStampedModel):
     STATE_CHOICES = Choices(
             (0, 'unconverted', 'Unconverted'),

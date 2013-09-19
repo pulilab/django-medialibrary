@@ -10,6 +10,24 @@ The basic problam to solve is to store, retrieve and manage several versions of 
 
 The idea for this app is to have all this in an app-indepedent and easy to use and extend way.
 
+Features
+---------
+
+* Unique entry point for every media type, `user.medialibrary.shelf_set`
+* Different shelfs with possible different login for every media type. The `shelf_set` contains different models, each derived from `medialibrary.models.Shelf`.
+* Simple access to the original file.::
+
+	myShelf = AudioShelf.objects.get(pk=1)
+	myShelf.audio_set.all()  # returns the list of audio files
+	isinstance(myShelf.original, Audio)  # return True, if a file is attached to myShelf
+	myShelf.original.size, myShelf.original.url
+
+* Custom manager to query the shelves.
+* Generic relationships to bind the shelves to any object in the project, using the ShelfRelation model
+* Every shelf type can have an ALLOWED_FORMATS property that lists the allowed extensions to be save in the shelf.
+* VideoShelves can have thumbnail images (actually ImageShelf instances) attached. Only one of these can be marked as selected. The myVideoShelf.thumbnail property returns the selected thumbnail.
+
+
 Frontend API
 -------------
 
@@ -44,6 +62,26 @@ You can set a custom argument for the ``limit_choices_to`` attribute on the Shel
 	from medialibrary import utils
 	from django.db import models
 	utils.content_type_restriction = models.Q(app_label='auth', model='user')
+
+Adding new media types
+_______________________
+
+The medialibrary can be easily extended with new media types. Here is an example to add a new DocumentShelf model::
+
+	from medialibrary.models import Shelf
+
+	class DocumentShelf(Shelf):
+
+	    ALLOWED_FORMATS = ('doc', 'docx', 'pdf', 'odf')
+
+	    def file_set():
+	        doc = "The file_set property."
+	        def fget(self):
+	            return self.audio_set
+	        return locals()
+	    file_set = property(**file_set())
+
+After this simple model definition, the user's `user.medialibrary.shelf_set` will contain DocumentShelf instances whenever appropriate. 
 
 Installation
 -------------

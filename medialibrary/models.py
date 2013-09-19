@@ -49,30 +49,10 @@ class Shelf(TimeStampedModel):
     def get_absolute_url(self):
         return ('medialibrary-shelf', (), {'pk': self.pk})
 
-
-class ShelfRelation(TimeStampedModel):
-    shelf = models.ForeignKey(Shelf, related_name='relationships')
-    content_type = models.ForeignKey(ContentType, limit_choices_to=content_type_restriction)
-    object_id = models.PositiveIntegerField()
-    relates_to = generic.GenericForeignKey('content_type', 'object_id')
-
-
-class AudioShelf(Shelf):
-
-    # AVAILABLE_FORMATS = ('aac', 'ogg', 'webm')
-    ALLOWED_FORMATS = ('mp3', 'aac', 'ogg', 'webm')
-
-
-class VideoShelf(Shelf):
-    
-    # AVAILABLE_FORMATS = ('mp4', 'webm')
-    ALLOWED_FORMATS = ('mp4', 'webm', 'avi')
-    # thumbnail = models.ForeignKey('ImageShelf')
-
     def original():
         doc = "The original file"
         def fget(self):
-            return self.video_set.filter(descriptor='original')[0]
+            return self.file_set.filter(descriptor='original')[0]
         return locals()
     original = property(**original())
 
@@ -91,10 +71,90 @@ class VideoShelf(Shelf):
     url = property(**url())
 
 
+class ShelfRelation(TimeStampedModel):
+    shelf = models.ForeignKey(Shelf, related_name='relationships')
+    content_type = models.ForeignKey(ContentType, limit_choices_to=content_type_restriction)
+    object_id = models.PositiveIntegerField()
+    relates_to = generic.GenericForeignKey('content_type', 'object_id')
+
+
+class AudioShelf(Shelf):
+
+    # AVAILABLE_FORMATS = ('aac', 'ogg', 'webm')
+    ALLOWED_FORMATS = ('mp3', 'aac', 'ogg', 'webm')
+
+    def file_set():
+        doc = "The file_set property."
+        def fget(self):
+            return self.audio_set
+        return locals()
+    file_set = property(**file_set())
+
+
+class VideoShelf(Shelf):
+    
+    # AVAILABLE_FORMATS = ('mp4', 'webm')
+    ALLOWED_FORMATS = ('mp4', 'webm', 'avi')
+    thumbnails = models.ManyToManyField('ImageShelf', through='VideoThumbnail', null=True, blank=True)
+
+    def file_set():
+        doc = "The file_set property."
+        def fget(self):
+            return self.video_set
+        return locals()
+    file_set = property(**file_set())
+
+    def thumbnail():
+        doc = "The video's thumbnail"
+        def fget(self):
+            try:
+                return VideoThumbnail.objects.get_selected(video=self).image
+            except VideoThumbnail.DoesNotExist:
+                return None
+        def fset(self, imageShelf):
+            try:
+                thumbnail = VideoThumbnail.objects.get(video=self, image=imageShelf)
+            except VideoThumbnail.DoesNotExist:
+                VideoThumbnail.objects.create(video=self, image=imageShelf, selected=True)
+            else:
+                thumbnail.selected = True
+                thumbnail.save()
+        return locals()
+    thumbnail = property(**thumbnail())
+
+
 class ImageShelf(Shelf):
 
     ALLOWED_FORMATS = ('jpg', 'jpeg', 'gif', 'png', 'pdf')
 
+    def file_set():
+        doc = "The file_set property."
+        def fget(self):
+            return self.audio_set
+        return locals()
+    file_set = property(**file_set())
+
+
+class ThumbnailManager(models.Manager):
+    use_for_related_fields = True
+
+    def get_selected(self, **kwargs):
+        kwargs.update({'selected': True})
+        return self.get_query_set().get(**kwargs)
+
+
+class VideoThumbnail(models.Model):
+
+    video = models.ForeignKey(VideoShelf)
+    image = models.ForeignKey(ImageShelf)
+    selected = models.BooleanField(default=False)
+
+    objects = ThumbnailManager()
+
+    def save(self, **kwargs):
+        if self.selected == True:
+            VideoThumbnail.objects.all().update(selected=False)
+        return super(VideoThumbnail, self).save(**kwargs)
 
 class BaseFile(TimeStampedModel):
     """

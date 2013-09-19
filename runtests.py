@@ -37,6 +37,11 @@ utils.content_type_restriction = models.Q(app_label='auth', model='user')
 from django.test.utils import get_runner
 
 
+def setup_test_route(instance, filename=None):
+    return 'test_temp/%s' % filename
+utils.setup_upload_route = setup_test_route
+
+
 def runtests():
     os.environ['FORCE_DB'] = '1'
     if len(sys.argv) > 1:

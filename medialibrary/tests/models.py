@@ -3,7 +3,7 @@ from django.core.files import File
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
 
-from ..models import MediaLibrary, AudioShelf, Shelf, Audio
+from ..models import MediaLibrary, AudioShelf, Shelf, Audio, VideoShelf, VideoThumbnail, ImageShelf
 
 class LibraryTest(TestCase):
 
@@ -68,7 +68,6 @@ class ShelfWithRelationshipTest(TestCase):
             self.assertEqual(q2-q1, 0)
         
 
-
 class BaseFileTest(TestCase):
 
     def setUp(self):
@@ -82,3 +81,39 @@ class BaseFileTest(TestCase):
         newmedia = media.save_alternative('me/testaudio2.mp3', 'mp3')
         self.assertEqual(shelf.audio_set.count(), 2)
         
+
+class VideoShelfTest(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create(username='testuser')
+
+    def test_thumbnail_set(self):
+        shelf = VideoShelf.objects.create(name='testvideo', library=self.user.medialibrary)
+        image = ImageShelf.objects.create(name='testimage', library=self.user.medialibrary)
+        shelf.thumbnail = image
+        self.assertEqual(shelf.thumbnail, image)
+
+    def test_change_thumbnail(self):
+        self.test_only_one_thumbnail()
+        shelf.thumbnail = image1
+        self.assertEqual(shelf.thumbnail, image1)
+
+    def test_thumbnail_get(self):
+        shelf = VideoShelf.objects.create(name='testvideo', library=self.user.medialibrary)
+        image = ImageShelf.objects.create(name='testimage', library=self.user.medialibrary)
+        VideoThumbnail.objects.create(video=shelf, image=image, selected=True)
+        self.assertEqual(shelf.thumbnail, image)
+
+    def test_only_one_thumbnail(self):
+        shelf = VideoShelf.objects.create(name='testvideo', library=self.user.medialibrary)
+        image1 = ImageShelf.objects.create(name='testimage1', library=self.user.medialibrary)
+        image2 = ImageShelf.objects.create(name='testimage2', library=self.user.medialibrary)
+        VideoThumbnail.objects.create(video=shelf, image=image1, selected=True)
+        VideoThumbnail.objects.create(video=shelf, image=image2, selected=True)
+        self.assertEqual(shelf.thumbnail, image2)
+        return shelf, image1
+
+    def test_change_thumbnail(self):
+        shelf, image1 = self.test_only_one_thumbnail()
+        shelf.thumbnail = image1
+        self.assertEqual(VideoShelf.objects.get(pk=shelf.pk).thumbnail, image1)

@@ -67,7 +67,22 @@ class VideoShelf(Shelf):
     
     # AVAILABLE_FORMATS = ('mp4', 'webm')
     ALLOWED_FORMATS = ('mp4', 'webm', 'avi')
-    # thumbnail = models.ForeignKey('ImageShelf')
+    thumbnails = models.ManyToManyField('ImageShelf', through='VideoThumbnail', null=True, blank=True)
+
+    def thumbnail():
+        doc = "The video's thumbnail"
+        def fget(self):
+            return VideoThumbnail.objects.get_selected(video=self).image
+        def fset(self, imageShelf):
+            try:
+                thumbnail = VideoThumbnail.objects.get(video=self, image=imageShelf)
+            except VideoThumbnail.DoesNotExist:
+                VideoThumbnail.objects.create(video=self, image=imageShelf, selected=True)
+            else:
+                thumbnail.selected = True
+                thumbnail.save()
+        return locals()
+    thumbnail = property(**thumbnail())
 
     def original():
         doc = "The original file"
@@ -95,6 +110,27 @@ class ImageShelf(Shelf):
 
     ALLOWED_FORMATS = ('jpg', 'jpeg', 'gif', 'png', 'pdf')
 
+
+class ThumbnailManager(models.Manager):
+    use_for_related_fields = True
+
+    def get_selected(self, **kwargs):
+        kwargs.update({'selected': True})
+        return self.get_query_set().get(**kwargs)
+
+
+class VideoThumbnail(models.Model):
+
+    video = models.ForeignKey(VideoShelf)
+    image = models.ForeignKey(ImageShelf)
+    selected = models.BooleanField(default=False)
+
+    objects = ThumbnailManager()
+
+    def save(self, **kwargs):
+        if self.selected == True:
+            VideoThumbnail.objects.all().update(selected=False)
+        return super(VideoThumbnail, self).save(**kwargs)
 
 class BaseFile(TimeStampedModel):
     """

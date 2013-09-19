@@ -3,7 +3,8 @@ from django.core.files import File
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
 
-from ..models import MediaLibrary, AudioShelf, Shelf, Audio, VideoShelf, VideoThumbnail, ImageShelf
+from ..models import MediaLibrary, AudioShelf, Shelf, Audio, \
+    VideoShelf, VideoThumbnail, ImageShelf, Video
 
 class LibraryTest(TestCase):
 
@@ -43,6 +44,17 @@ class ShelfTest(TestCase):
         shelf = AudioShelf.objects.get(pk=shelf.pk)
         self.assertEqual(shelf.audio_set.all()[0], media)
 
+    def test_original_file(self):
+        shelf1 = AudioShelf.objects.create(name='testaudio', library=self.user.medialibrary)
+        media1 = Audio(file=File(open(__file__, 'rb'), 'testaudio.mp3'), descriptor='original')
+        shelf1.audio_set.add(media1)
+
+        shelf2 = VideoShelf.objects.create(name='testVideo', library=self.user.medialibrary)
+        media2 = Video(file=File(open(__file__, 'rb'), 'testVideo.mp4'), descriptor='original')
+        shelf2.video_set.add(media2)
+
+        self.assertEqual(shelf1.original, media1)
+        self.assertEqual(shelf2.original, media2)
 
 
 class ShelfWithRelationshipTest(TestCase):

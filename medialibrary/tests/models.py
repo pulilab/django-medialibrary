@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.core.files import File
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
-
+from . import TearDownMixin
 from ..models import MediaLibrary, AudioShelf, Shelf, Audio, \
     VideoShelf, VideoThumbnail, ImageShelf, Video
 
@@ -14,7 +14,7 @@ class LibraryTest(TestCase):
         self.assertIsInstance(user.medialibrary, MediaLibrary)
         
 
-class ShelfTest(TestCase):
+class ShelfTest(TearDownMixin, TestCase):
 
     def setUp(self):
         self.user = User.objects.create(username='testuser')
@@ -80,7 +80,7 @@ class ShelfWithRelationshipTest(TestCase):
             self.assertEqual(q2-q1, 0)
         
 
-class BaseFileTest(TestCase):
+class BaseFileTest(TearDownMixin, TestCase):
 
     def setUp(self):
         self.user = User.objects.create(username='testuser')
@@ -94,7 +94,7 @@ class BaseFileTest(TestCase):
         self.assertEqual(shelf.audio_set.count(), 2)
         
 
-class VideoShelfTest(TestCase):
+class VideoShelfTest(TearDownMixin, TestCase):
 
     def setUp(self):
         self.user = User.objects.create(username='testuser')

@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.files import File
+from . import TearDownMixin
 from ..serializers import ShelfSerializer, AudioSerializer
 from ..models import ImageShelf, Image, AudioShelf, Audio
 
@@ -20,7 +21,7 @@ class BaseFileSerializerTest(TestCase):
         self.assertEqual(serializer.data['url'], 'testaudio.mp3')
 
 
-class ShelfSerializerTest(TestCase):
+class ShelfSerializerTest(TearDownMixin, TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user('alma', 'alma@example.com', 'alma')

@@ -3,6 +3,7 @@ from django.core.files import File
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
 
+from. import TearDownMixin
 from ..models import MediaLibrary, AudioShelf, Shelf, Audio
 
 class LibraryTest(TestCase):
@@ -13,7 +14,7 @@ class LibraryTest(TestCase):
         self.assertIsInstance(user.medialibrary, MediaLibrary)
         
 
-class ShelfTest(TestCase):
+class ShelfTest(TearDownMixin, TestCase):
 
     def setUp(self):
         self.user = User.objects.create(username='testuser')
@@ -69,7 +70,7 @@ class ShelfWithRelationshipTest(TestCase):
         
 
 
-class BaseFileTest(TestCase):
+class BaseFileTest(TearDownMixin, TestCase):
 
     def setUp(self):
         self.user = User.objects.create(username='testuser')

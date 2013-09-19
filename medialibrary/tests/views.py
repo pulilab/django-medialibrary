@@ -4,6 +4,7 @@ from django.core.files import File
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 
+from . import TearDownMixin
 from ..models import AudioShelf, Audio
 from ..serializers import ShelfSerializer
 
@@ -44,7 +45,7 @@ class AddShelfRelationAPIView(MyViewTestMixin, TestCase):
         self.assertTrue(data.has_key('model'))
 
 
-class LibraryViewTest(MyViewTestMixin, TestCase):
+class LibraryViewTest(TearDownMixin, MyViewTestMixin, TestCase):
 
     def setUp(self):
         self._create_user()
@@ -61,7 +62,7 @@ class LibraryViewTest(MyViewTestMixin, TestCase):
         self.assertEqual(len(data['files']), 1)
 
 
-class LibraryLoadedViewTest(MyViewTestMixin, TestCase):
+class LibraryLoadedViewTest(TearDownMixin, MyViewTestMixin, TestCase):
 
     # fixtures = ['test_library.json']
 
@@ -94,7 +95,7 @@ class LibraryLoadedViewTest(MyViewTestMixin, TestCase):
         self.assertEqual(data, [])
 
 
-class LibraryPermissionTest(MyViewTestMixin, TestCase):
+class LibraryPermissionTest(TearDownMixin, MyViewTestMixin, TestCase):
 
     def setUp(self):
         self._create_user()

@@ -1,4 +1,4 @@
-medialibrary
+Medialibrary for Django
 ========================
 
 Welcome to the documentation for django-medialibrary!

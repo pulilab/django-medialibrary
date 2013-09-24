@@ -130,7 +130,7 @@ class ImageShelf(Shelf):
     def file_set():
         doc = "The file_set property."
         def fget(self):
-            return self.audio_set
+            return self.image_set
         return locals()
     file_set = property(**file_set())
 

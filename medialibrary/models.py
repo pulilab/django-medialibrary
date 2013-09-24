@@ -153,7 +153,7 @@ class VideoThumbnail(models.Model):
 
     def save(self, **kwargs):
         if self.selected == True:
-            VideoThumbnail.objects.all().update(selected=False)
+            VideoThumbnail.objects.filter(video=self.video).update(selected=False)
         return super(VideoThumbnail, self).save(**kwargs)
 
 class BaseFile(TimeStampedModel):

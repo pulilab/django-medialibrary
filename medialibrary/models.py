@@ -97,7 +97,9 @@ class AudioShelf(Shelf):
 class VideoShelf(Shelf):
     
     # AVAILABLE_FORMATS = ('mp4', 'webm')
-    ALLOWED_FORMATS = ('mp4', 'webm', 'avi')
+    ALLOWED_FORMATS = (
+    '3gp', 'asf', 'avi', 'divx', 'flv', 'mkv', 'mov', 'mpg', 'mp4', 'mpeg',
+    'm4v', 'mxf', 'ogg', 'vob', 'webm')
     thumbnails = models.ManyToManyField('ImageShelf', through='VideoThumbnail', null=True, blank=True)
 
     def file_set():

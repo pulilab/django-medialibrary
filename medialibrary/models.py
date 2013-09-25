@@ -45,6 +45,9 @@ class Shelf(TimeStampedModel):
     class Meta:
         verbose_name_plural = 'Shelves'
 
+    def __unicode__(self):
+        return u'%s (%s)' % (self.name, self.__class__)
+
     @models.permalink
     def get_absolute_url(self):
         return ('medialibrary-shelf', (), {'pk': self.pk})

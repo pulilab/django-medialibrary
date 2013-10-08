@@ -42,6 +42,13 @@ class Shelf(TimeStampedModel):
     objects = ShelfManager() 
     with_relations = ShelfManagerWithRelations()
 
+    def file_set():
+        doc = "The file_set property."
+        def fget(self):
+            raise NotImplementedError
+        return locals()
+    file_set = property(**file_set())
+
     class Meta:
         verbose_name_plural = 'Shelves'
 

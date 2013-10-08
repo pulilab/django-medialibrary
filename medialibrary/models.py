@@ -127,6 +127,13 @@ class VideoShelf(Shelf):
         return locals()
     thumbnail = property(**thumbnail())
 
+    def duration():
+        doc = "The length property."
+        def fget(self):
+            return self.original.duration
+        return locals()
+    duration = property(**duration())
+
 
 class ImageShelf(Shelf):
 
@@ -167,6 +174,7 @@ class BaseFile(TimeStampedModel):
     """
     shelf = models.ForeignKey(Shelf)
     descriptor = models.CharField(max_length=255, blank=True, default='original')
+    content_type = models.CharField(max_length=50, blank=True, default='application/octet-stream')
     file = models.FileField(upload_to=setup_upload_route)
     meta = JSONField(blank=True, help_text="An arbitrary JSON")
 
@@ -181,12 +189,14 @@ class BaseFile(TimeStampedModel):
             raise ValueError
         return super(BaseFile, self).save(force_insert, force_update, update_fields)
 
-    def save_alternative(self, url, descriptor, meta={}):
+    def save_alternative(self, url, descriptor, meta={}, **kwargs):
         """Creates a new media record in the DB from the current one without saving any new files in the storage"""
         self.pk = None
         self.file.name = url
         self.descriptor = descriptor
         self.meta = meta if meta else self.meta
+        for key, value in kwargs.items():
+            setattr(self, key, value)
         self.save()
         return self
 
@@ -203,6 +213,10 @@ class Video(BaseFile):
     Audio model to store audiofiles that can be added to a project.
     """
     TYPES = Choices('original', 'webm', 'mp4')
+
+    duration = models.IntegerField(null=True)
+    height = models.IntegerField(null=True)
+    width = models.IntegerField(null=True)
 
 
 class Image(BaseFile):

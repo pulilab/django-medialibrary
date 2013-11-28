@@ -182,7 +182,7 @@ class BaseFile(TimeStampedModel):
     shelf = models.ForeignKey(Shelf)
     descriptor = models.CharField(max_length=255, blank=True, default='original')
     content_type = models.CharField(max_length=50, blank=True, default='application/octet-stream')
-    file = models.FileField(upload_to=setup_upload_route)
+    file = models.FileField(max_length=255, upload_to=setup_upload_route)
     meta = JSONField(blank=True, help_text="An arbitrary JSON")
 
     class Meta:

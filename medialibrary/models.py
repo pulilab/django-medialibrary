@@ -189,7 +189,7 @@ class BaseFile(TimeStampedModel):
         abstract = True
 
     def has_valid_format(self):
-        return self.file.url.split('.')[-1] in self.shelf.ALLOWED_FORMATS
+        return self.file.url.split('.')[-1].lower() in self.shelf.ALLOWED_FORMATS
 
     def save(self, force_insert=False, force_update=False, update_fields=None):
         if not self.has_valid_format():

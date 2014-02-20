@@ -244,5 +244,5 @@ class MediaLibrary(TimeStampedModel):
 @receiver(post_save, sender=User, dispatch_uid="create_media_library")
 def create_media_library(sender, created, instance, **kwargs):
     if created:
-        instance.medialibrary = MediaLibrary.objects.create(user=instance)
+        instance.medialibrary, created = MediaLibrary.objects.get_or_create(user=instance)
         instance.save()

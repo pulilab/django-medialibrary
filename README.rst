@@ -95,9 +95,11 @@ Running the standalone tests
 
 You can run the tests via:
 
-	#create a virtualenv and activate it
-	pip install -r test_requirements.txt
-	python runtests.py
+	``#create a virtualenv and activate it``
+	
+	``pip install -r test_requirements.txt``
+	
+	``python runtests.py``
 
 Sponsors
 ----------

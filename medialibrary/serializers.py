@@ -43,7 +43,7 @@ class ShelfSerializer(serializers.ModelSerializer):
             raise ValueError('Shelf type must be specified in the ShelfSerializer context')
 
         if kwargs.get('files', None) and len( kwargs['files'].keys() ) > 1:
-            raise ValueError('Only a single file can be uploaded at a time')            
+            raise ValueError('Only a single file can be uploaded at a time')
 
         shelf_types = {
             'image': ImageShelf,
@@ -61,7 +61,7 @@ class ShelfSerializer(serializers.ModelSerializer):
             )
         elif method == 'PUT':  #: we are updating a shelve
             files = serializers.PrimaryKeyRelatedField(
-                source='%s_set.add' % self.shelf_type, 
+                source='%s_set.add' % self.shelf_type,
                 required=True, many=False
             )
         else:
@@ -94,6 +94,6 @@ class ShelfSerializer(serializers.ModelSerializer):
         return data
 
     class Meta:
-        fields = ('url', 'name', 'state', 'library')
+        fields = ('url', 'name', 'state', 'library', 'meta')
         read_only_fields = ('state', )
 

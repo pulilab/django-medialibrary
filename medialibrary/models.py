@@ -39,8 +39,10 @@ class Shelf(TimeStampedModel):
     name = models.CharField(max_length=255)
     library = models.ForeignKey('MediaLibrary')
 
-    objects = ShelfManager() 
+    objects = ShelfManager()
     with_relations = ShelfManagerWithRelations()
+
+    meta = JSONField(null=True, blank=True, help_text="The JSON metadata that belongs to the shelf")
 
     def file_set():
         doc = "The file_set property."
@@ -102,7 +104,7 @@ class AudioShelf(Shelf):
 
 
 class VideoShelf(Shelf):
-    
+
     # AVAILABLE_FORMATS = ('mp4', 'webm')
     ALLOWED_FORMATS = (
     '3gp', 'asf', 'avi', 'divx', 'flv', 'mkv', 'mov', 'mpg', 'mp4', 'mpeg',

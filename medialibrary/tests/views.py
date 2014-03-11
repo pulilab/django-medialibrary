@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 
 from . import TearDownMixin
-from ..models import AudioShelf, Audio
+from ..models import AudioShelf, Audio, Shelf
 from ..serializers import ShelfSerializer
 
 class MyViewTestMixin(object):
@@ -25,20 +25,20 @@ class AddShelfRelationAPIView(MyViewTestMixin, TestCase):
         self.shelf = AudioShelf.objects.create(name='testaudio', library=self.user.medialibrary)
 
     def test_requires_login(self):
-        resp = self.client.post(reverse('medialibrary-shelf-add-relation', kwargs={'pk':self.shelf.pk}), 
+        resp = self.client.post(reverse('medialibrary-shelf-add-relation', kwargs={'pk':self.shelf.pk}),
             data={})
         self.assertEqual(resp.status_code, 403)
 
     def test_add_relationship(self):
         self._login()
-        resp = self.client.post(reverse('medialibrary-shelf-add-relation', kwargs={'pk':self.shelf.pk}), 
+        resp = self.client.post(reverse('medialibrary-shelf-add-relation', kwargs={'pk':self.shelf.pk}),
             data={'model':'auth.user', 'object_id':self.user.pk})
         self.assertEqual(resp.status_code, 201, resp.content)
         self.assertEqual(self.shelf.relationships.count(), 1)
 
     def test_relationships_are_restricted(self):
         self._login()
-        resp = self.client.post(reverse('medialibrary-shelf-add-relation', kwargs={'pk':self.shelf.pk}), 
+        resp = self.client.post(reverse('medialibrary-shelf-add-relation', kwargs={'pk':self.shelf.pk}),
             data={'model':'medialibrary.medialibrary', 'object_id':self.user.medialibrary.pk})
         self.assertEqual(resp.status_code, 400, resp.content)
         data = json.loads(resp.content)
@@ -60,6 +60,21 @@ class LibraryViewTest(TearDownMixin, MyViewTestMixin, TestCase):
         data = json.loads(resp.content)
         self.assertEqual(data['name'], 'test.png')
         self.assertEqual(len(data['files']), 1)
+
+    def test_upload_set_meta(self):
+        self._login()
+        with open('resources/test.png') as fp:
+            resp = self.client.post(reverse('medialibrary',
+                                            kwargs={'type':'image'}),
+                                    {'file': fp, 'meta': json.dumps({'yolo': 'swag'})})
+
+        self.assertEqual(resp.status_code, 201)
+        data = json.loads(resp.content)
+        self.assertEqual(data['name'], 'test.png')
+        shelf = Shelf.objects.get(pk=1)
+
+        self.assertTrue(data.has_key('meta'))
+        self.assertEqual(shelf.meta, {'yolo': 'swag'})
 
 
 class LibraryLoadedViewTest(TearDownMixin, MyViewTestMixin, TestCase):
@@ -83,7 +98,7 @@ class LibraryLoadedViewTest(TearDownMixin, MyViewTestMixin, TestCase):
         serializer_keys = ShelfSerializer(self.shelf, context={'shelf_type': 'audio'}).data.keys()
         serializer_keys.sort()
         self.assertEqual(
-            keys_to_match, 
+            keys_to_match,
             serializer_keys
         )
 

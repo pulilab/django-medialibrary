@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'Shelf.meta'
         db.add_column(u'medialibrary_shelf', 'meta',
-                      self.gf('jsonfield.fields.JSONField')(default='', blank=True),
+                      self.gf('jsonfield.fields.JSONField')(default='{}', blank=True),
                       keep_default=False)
 
 

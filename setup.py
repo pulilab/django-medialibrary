@@ -39,6 +39,7 @@ setup(
         'Django>=1.4,<1.6',
         'django-model-utils',
         'django-jsonfield>=0.9.10',
+        'djangorestframework>=2.3.12'
     ],
     download_url='https://github.com/pulilab/django-medialibrary/archive/1.1.0.zip'
 )

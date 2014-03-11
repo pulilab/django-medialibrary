@@ -90,16 +90,14 @@ Installation
 
 or you can `find the project on github <https://github.com/pulilab/django-medialibrary>`_
 
-Running the Tests
+Running the standalone tests 
 ------------------------------------
 
-You can run the tests with via::
+You can run the tests via:
 
-    python setup.py test
-
-or::
-
-    python runtests.py
+	#create a virtualenv and activate it
+	pip install -r test_requirements.txt
+	python runtests.py
 
 Sponsors
 ----------

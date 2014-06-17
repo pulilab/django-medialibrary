@@ -1,3 +1,4 @@
+import os
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -196,6 +197,14 @@ class BaseFile(TimeStampedModel):
     def save(self, force_insert=False, force_update=False, update_fields=None):
         if not self.has_valid_format():
             raise ValueError
+        try:
+            if hasattr(self.file.file, 'temporary_file_path'):
+                # A hack to avoid accumulating temp files in /tmp
+                # Done before parent save() or else the FileField file is no
+                # longer a TemporaryUploadFile
+                self.temp_file_path = self.file.file.temporary_file_path()
+        except IOError:
+            pass
         return super(BaseFile, self).save(force_insert, force_update, update_fields)
 
     def save_alternative(self, url, descriptor, meta={}, **kwargs):
@@ -248,3 +257,14 @@ def create_media_library(sender, created, instance, **kwargs):
     if created:
         instance.medialibrary, created = MediaLibrary.objects.get_or_create(user=instance)
         instance.save()
+
+@receiver(post_save, dispatch_uid="remove_stuck_temp_file")
+def remove_stuck_temp_file(sender, instance, **kwargs):
+    # Returns false if 'sender' is NOT a subclass of AbstractModel
+    if not issubclass(sender, BaseFile):
+       return
+    if hasattr(instance, 'temp_file_path'):
+        try:
+            os.unlink(instance.temp_file_path)
+        except IOError:
+            pass

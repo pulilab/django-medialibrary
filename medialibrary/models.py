@@ -65,7 +65,7 @@ class Shelf(TimeStampedModel):
     def original():
         doc = "The original file"
         def fget(self):
-            return self.file_set.filter(descriptor='original')[0]
+            return self.file_set.filter(descriptor__in=['original', 'thumbnail'])[0]
         return locals()
     original = property(**original())
 

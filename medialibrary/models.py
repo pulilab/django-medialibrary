@@ -203,7 +203,7 @@ class BaseFile(TimeStampedModel):
                 # Done before parent save() or else the FileField file is no
                 # longer a TemporaryUploadFile
                 self.temp_file_path = self.file.file.temporary_file_path()
-        except IOError:
+        except (IOError, OSError):
             pass
         return super(BaseFile, self).save(force_insert, force_update, update_fields)
 
@@ -266,5 +266,5 @@ def remove_stuck_temp_file(sender, instance, **kwargs):
     if hasattr(instance, 'temp_file_path'):
         try:
             os.unlink(instance.temp_file_path)
-        except IOError:
+        except (IOError, OSError):
             pass

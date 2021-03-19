@@ -2,5 +2,5 @@ Django<1.6
 django-jsonfield==0.9.12
 django-model-utils==2.0.2
 django-nose==1.2
-djangorestframework==2.3.12
+djangorestframework==3.11.2
 git+ssh://git@github.com/jbalogh/test-utils.git
